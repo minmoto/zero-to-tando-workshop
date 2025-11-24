@@ -1,0 +1,96 @@
+// Payment rail types
+export enum PaymentRail {
+  MOBILE_MONEY = 'MPESA_PHONE',
+  BANK_TRANSFER = 'BANK_TRANSFER',
+  CARD = 'CARD'
+}
+
+export enum SwapType {
+  ONRAMP = 'onramp',
+  OFFRAMP = 'offramp'
+}
+
+export enum SwapState {
+  CREATED = 'created',
+  AGENT_MATCHED = 'agent_matched',
+  ESCROW_PENDING = 'escrow_pending',
+  ESCROW_LOCKED = 'escrow_locked',
+  PAYMENT_INSTRUCTED = 'payment_instructed',
+  PAYMENT_PENDING = 'payment_pending',
+  PAYMENT_SUBMITTED = 'payment_submitted',
+  PAYMENT_CONFIRMED_USER = 'payment_confirmed_user',
+  PAYMENT_CONFIRMED_AGENT = 'payment_confirmed_agent',
+  COMPLETED = 'completed',
+  CANCELLED = 'cancelled',
+  DISPUTED = 'disputed'
+}
+
+export enum Currency {
+  BTC = 'BTC',
+  KES = 'KES',
+  USD = 'USD'
+}
+
+// Destination details based on payment rail
+export interface MobileMoneyDetails {
+  phoneNumber: string;
+}
+
+export interface BankTransferDetails {
+  bankName: string;
+  accountNumber: string;
+  accountName?: string;
+}
+
+export interface CardDetails {
+  cardNumber: string;
+  expiryMonth: string;
+  expiryYear: string;
+}
+
+export type DestinationDetails =
+  | MobileMoneyDetails
+  | BankTransferDetails
+  | CardDetails;
+
+// Swap creation data
+export interface SwapFormData {
+  paymentRail: PaymentRail;
+  destinationDetails: DestinationDetails;
+  fiatAmount: string;
+  satoshiAmount: string;
+  exchangeRate: number;
+}
+
+// API response types
+export interface ExchangeRateResponse {
+  rate: number;
+  currency: string;
+  timestamp: string;
+}
+
+export interface SwapResponse {
+  id: string;
+  reference: string;
+  type: SwapType;
+  state: SwapState;
+  fiatAmount: string;
+  fiatCurrency: Currency;
+  bitcoinAmount: string;
+  exchangeRate: string;
+  paymentChannel: string;
+  escrowInvoice?: string;
+  createdAt: string;
+  agentPaymentDetails?: Record<string, unknown>;
+  userPaymentDetails?: Record<string, unknown>;
+}
+
+// Flow steps
+export enum OfframpStep {
+  SELECT_PAYMENT_RAIL = 'select_payment_rail',
+  ENTER_DESTINATION = 'enter_destination',
+  ENTER_AMOUNT = 'enter_amount',
+  CONFIRM_DETAILS = 'confirm_details',
+  DISPLAY_INVOICE = 'display_invoice',
+  TRACK_SWAP = 'track_swap'
+}
