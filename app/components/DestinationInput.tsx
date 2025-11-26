@@ -53,7 +53,7 @@ export function DestinationInput({
   };
 
   const handleBankTransferChange = (field: keyof BankTransferDetails, value: string) => {
-    const current = (value as BankTransferDetails) || {
+    const current = (value as unknown as BankTransferDetails) || {
       bankName: '',
       accountNumber: '',
       accountName: ''
@@ -73,7 +73,7 @@ export function DestinationInput({
   };
 
   const handleCardChange = (field: keyof CardDetails, value: string) => {
-    const current = (value as CardDetails) || {
+    const current = (value as unknown as CardDetails) || {
       cardNumber: '',
       expiryMonth: '',
       expiryYear: ''

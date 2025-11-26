@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   PaymentRail,
   OfframpStep,
@@ -17,14 +17,37 @@ import { AmountInput } from './components/AmountInput';
 import { ConfirmationScreen } from './components/ConfirmationScreen';
 import { InvoiceDisplay } from './components/InvoiceDisplay';
 import { SwapTracker } from './components/SwapTracker';
+import { fxRatesService } from './services/fxRatesService';
 
 export default function Home() {
   const [currentStep, setCurrentStep] = useState<OfframpStep>(OfframpStep.SELECT_PAYMENT_RAIL);
   const [formData, setFormData] = useState<Partial<SwapFormData>>({
-    exchangeRate: 6500000 // Mock rate: 1 BTC = 6.5M KES
+    exchangeRate: 0 // Will be fetched from API
   });
   const [createdSwap, setCreatedSwap] = useState<SwapResponse | null>(null);
   const [isCreatingSwap, setIsCreatingSwap] = useState(false);
+  const [isLoadingRate, setIsLoadingRate] = useState(true);
+
+  // Fetch initial exchange rate and set up polling
+  useEffect(() => {
+    const fetchRate = async () => {
+      try {
+        const rate = await fxRatesService.getBtcToFiatRate('KES');
+        setFormData(prev => ({ ...prev, exchangeRate: rate }));
+        setIsLoadingRate(false);
+      } catch (error) {
+        console.error('Failed to fetch initial exchange rate:', error);
+        setIsLoadingRate(false);
+      }
+    };
+
+    fetchRate();
+
+    // Poll for rate updates every 30 seconds
+    const intervalId = setInterval(fetchRate, 30000);
+
+    return () => clearInterval(intervalId);
+  }, []);
 
   // Step: Select Payment Rail
   const handlePaymentRailSelect = (rail: PaymentRail) => {
@@ -92,7 +115,7 @@ export default function Home() {
         paymentChannel: formData.paymentRail!,
         escrowInvoice: 'lnbc' + Math.random().toString(36).substring(2, 15) + '...',
         createdAt: new Date().toISOString(),
-        userPaymentDetails: formData.destinationDetails
+        userPaymentDetails: formData.destinationDetails as unknown as Record<string, unknown>
       };
 
       setTimeout(() => {
@@ -114,7 +137,7 @@ export default function Home() {
 
   // Step: Tracking
   const handleNewSwap = () => {
-    setFormData({ exchangeRate: 6500000 });
+    setFormData({ exchangeRate: formData.exchangeRate || 0 });
     setCreatedSwap(null);
     setCurrentStep(OfframpStep.SELECT_PAYMENT_RAIL);
   };
@@ -141,9 +164,6 @@ export default function Home() {
       <div className="w-full max-w-2xl">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
-            Tando
-          </h1>
           <p className="text-gray-600 dark:text-gray-400">
             Send Bitcoin, receive local currency
           </p>

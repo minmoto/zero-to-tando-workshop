@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Zero to Tando",
+  title: "Bitcoin Offramp",
   description: "Starter app to build a Bitcoin offramp using the Minmo API",
 };
 

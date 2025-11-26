@@ -69,6 +69,14 @@ export interface ExchangeRateResponse {
   timestamp: string;
 }
 
+export interface FxRateResponse {
+  baseCurrency: string;
+  targetCurrency: string;
+  rate: number;
+  timestamp: string;
+  source?: string;
+}
+
 export interface SwapResponse {
   id: string;
   reference: string;
