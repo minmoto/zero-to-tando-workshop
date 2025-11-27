@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Currency } from '../types';
+import { fxRatesService } from '../services/fxRatesService';
 
 interface AmountInputProps {
   fiatAmount: string;
@@ -40,23 +41,16 @@ export function AmountInput({
     setRateError(null);
 
     try {
-      // Mock exchange rate fetch - replace with actual API call
-      // const response = await fetch('/api/fx/rate?from=BTC&to=KES');
-      // const data = await response.json();
-      // const rate = data.rate;
+      const rate = await fxRatesService.getBtcToFiatRate('KES');
 
-      // For now, using a mock rate
-      const mockRate = 6_500_000; // 1 BTC = 6.5M KES
-
-      setTimeout(() => {
-        if (fiatAmount) {
-          const sats = convertFiatToSats(fiatAmount, mockRate);
-          onFiatChange(fiatAmount, sats);
-        }
-        setIsLoadingRate(false);
-      }, 500);
+      if (fiatAmount) {
+        const sats = convertFiatToSats(fiatAmount, rate);
+        onFiatChange(fiatAmount, sats);
+      }
+      setIsLoadingRate(false);
     } catch (error) {
-      setRateError('Failed to fetch exchange rate');
+      console.error('Failed to fetch exchange rate:', error);
+      setRateError('Failed to fetch exchange rate. Please try again.');
       setIsLoadingRate(false);
     }
   };
