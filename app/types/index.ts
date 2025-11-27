@@ -1,8 +1,8 @@
 // Payment rail types
 export enum PaymentRail {
-  MOBILE_MONEY = 'MPESA_PHONE',
-  BANK_TRANSFER = 'BANK_TRANSFER',
-  CARD = 'CARD'
+  MOBILE_MONEY = 'mpesa_phone',
+  BANK_TRANSFER = 'bank_transfer',
+  CARD = 'card'
 }
 
 export enum SwapType {
@@ -99,6 +99,32 @@ export enum OfframpStep {
   ENTER_DESTINATION = 'enter_destination',
   ENTER_AMOUNT = 'enter_amount',
   CONFIRM_DETAILS = 'confirm_details',
+  SWAP_CONFIRMATION = 'swap_confirmation',
   DISPLAY_INVOICE = 'display_invoice',
   TRACK_SWAP = 'track_swap'
+}
+
+// Swap history filter and sort options
+export type SwapFilterOption = 'all' | 'pending' | 'completed';
+export type SwapSortOption = 'newest' | 'oldest' | 'amount_high' | 'amount_low';
+
+// Stored swap interface for localStorage
+export interface StoredSwap extends SwapResponse {
+  beneficiaryId: string;
+  savedAt: string;
+}
+
+// Swap history state
+export interface SwapHistoryState {
+  swaps: StoredSwap[];
+  filter: SwapFilterOption;
+  sort: SwapSortOption;
+}
+
+// Swap storage interface
+export interface SwapStorage {
+  saveSwap: (swap: SwapResponse, beneficiaryId: string) => void;
+  getSwaps: (beneficiaryId?: string) => StoredSwap[];
+  getSwapById: (id: string) => StoredSwap | null;
+  clearSwaps: () => void;
 }
