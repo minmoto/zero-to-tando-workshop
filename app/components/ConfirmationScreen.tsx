@@ -203,7 +203,7 @@ export function ConfirmationScreen({
               Important
             </p>
             <p className="text-sm text-yellow-800 dark:text-yellow-200 mt-1">
-              Once you click "Create Swap", you&apos;ll receive a Lightning invoice.
+              Once you click {"Create Swap"}, you&apos;ll receive a Lightning invoice.
               You must pay this invoice to lock in the exchange rate and proceed with the swap.
             </p>
           </div>

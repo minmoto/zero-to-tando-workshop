@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import {
   PaymentRail,
   OfframpStep,
@@ -8,16 +9,18 @@ import {
   DestinationDetails,
   SwapResponse,
   SwapType,
-  SwapState,
   Currency
 } from './types';
 import { PaymentRailSelector } from './components/PaymentRailSelector';
 import { DestinationInput } from './components/DestinationInput';
 import { AmountInput } from './components/AmountInput';
 import { ConfirmationScreen } from './components/ConfirmationScreen';
+import { SwapConfirmation } from './components/SwapConfirmation';
 import { InvoiceDisplay } from './components/InvoiceDisplay';
 import { SwapTracker } from './components/SwapTracker';
 import { fxRatesService } from './services/fxRatesService';
+import { getBeneficiaryId } from './lib/beneficiary';
+import { saveSwap } from './lib/swapStorage';
 
 export default function Home() {
   const [currentStep, setCurrentStep] = useState<OfframpStep>(OfframpStep.SELECT_PAYMENT_RAIL);
@@ -27,6 +30,14 @@ export default function Home() {
   const [createdSwap, setCreatedSwap] = useState<SwapResponse | null>(null);
   const [isCreatingSwap, setIsCreatingSwap] = useState(false);
   const [isLoadingRate, setIsLoadingRate] = useState(true);
+
+  // Get or generate beneficiary ID once on mount
+  const [beneficiaryId] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      return getBeneficiaryId();
+    }
+    return '';
+  });
 
   // Fetch initial exchange rate and set up polling
   useEffect(() => {
@@ -86,48 +97,47 @@ export default function Home() {
     setIsCreatingSwap(true);
 
     try {
-      // Mock API call to create swap
-      // In production, this would call the MINMO API
-      // const response = await fetch('/api/swap', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({
-      //     type: SwapType.OFFRAMP,
-      //     fiatAmount: formData.fiatAmount,
-      //     fiatCurrency: Currency.KES,
-      //     paymentChannel: formData.paymentRail,
-      //     userPaymentDetails: formData.destinationDetails,
-      //     agentMargin: 0
-      //   })
-      // });
-      // const swap = await response.json();
+      const response = await fetch('/api/swap', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: SwapType.OFFRAMP,
+          fiatAmount: formData.fiatAmount,
+          fiatCurrency: Currency.KES,
+          paymentChannel: formData.paymentRail,
+          userPaymentDetails: formData.destinationDetails, // Only send destination details
+          beneficiaryId, // Include beneficiary ID for swap tracking
+          agentMargin: 600, // Set default margin
+          metadata: {
+            source: 'web_app',
+            exchangeRate: formData.exchangeRate // Include exchange rate in metadata
+          }
+        })
+      });
 
-      // Mock swap response for demo
-      const mockSwap: SwapResponse = {
-        id: `swap-${Date.now()}`,
-        reference: `REF-${Math.random().toString(36).substring(7).toUpperCase()}`,
-        type: SwapType.OFFRAMP,
-        state: SwapState.CREATED,
-        fiatAmount: formData.fiatAmount!,
-        fiatCurrency: Currency.KES,
-        bitcoinAmount: formData.satoshiAmount!,
-        exchangeRate: formData.exchangeRate!.toString(),
-        paymentChannel: formData.paymentRail!,
-        escrowInvoice: 'lnbc' + Math.random().toString(36).substring(2, 15) + '...',
-        createdAt: new Date().toISOString(),
-        userPaymentDetails: formData.destinationDetails as unknown as Record<string, unknown>
-      };
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(errorData.message || errorData.error || 'Failed to create swap');
+      }
 
-      setTimeout(() => {
-        setCreatedSwap(mockSwap);
-        setIsCreatingSwap(false);
-        setCurrentStep(OfframpStep.DISPLAY_INVOICE);
-      }, 1500); // Simulate API delay
+      const swap: SwapResponse = await response.json();
+
+      // Save swap to localStorage
+      saveSwap(swap, beneficiaryId);
+
+      setCreatedSwap(swap);
+      setIsCreatingSwap(false);
+      setCurrentStep(OfframpStep.SWAP_CONFIRMATION);
     } catch (error) {
       console.error('Failed to create swap:', error);
       setIsCreatingSwap(false);
-      // Handle error (show error message to user)
+      toast.error(error instanceof Error ? error.message : 'Failed to create swap. Please try again.');
     }
+  };
+
+  // Step: Swap Confirmation
+  const handleContinueToPayment = () => {
+    setCurrentStep(OfframpStep.DISPLAY_INVOICE);
   };
 
   // Step: Invoice Display
@@ -178,6 +188,7 @@ export default function Home() {
                 OfframpStep.ENTER_DESTINATION,
                 OfframpStep.ENTER_AMOUNT,
                 OfframpStep.CONFIRM_DETAILS,
+                OfframpStep.SWAP_CONFIRMATION,
                 OfframpStep.DISPLAY_INVOICE
               ].map((step, index) => {
                 const stepIndex = Object.values(OfframpStep).indexOf(step);
@@ -190,7 +201,7 @@ export default function Home() {
                     key={step}
                     className={`
                       h-2 rounded-full transition-all duration-300
-                      ${index === 0 ? 'w-8' : index === 4 ? 'w-8' : 'w-12'}
+                      ${index === 0 ? 'w-8' : index === 5 ? 'w-8' : 'w-12'}
                       ${
                         isCompleted
                           ? 'bg-blue-500'
@@ -258,6 +269,13 @@ export default function Home() {
               onConfirm={handleConfirmSwap}
               onBack={handleBack}
               isCreating={isCreatingSwap}
+            />
+          )}
+
+          {currentStep === OfframpStep.SWAP_CONFIRMATION && createdSwap && (
+            <SwapConfirmation
+              swap={createdSwap}
+              onContinueToPayment={handleContinueToPayment}
             />
           )}
 
