@@ -21,8 +21,6 @@ export function SwapCard({ swap }: SwapCardProps) {
         return 'M-Pesa';
       case PaymentRail.BANK_TRANSFER:
         return 'Bank Transfer';
-      case PaymentRail.CARD:
-        return 'Card';
       default:
         return channel.replace(/_/g, ' ');
     }

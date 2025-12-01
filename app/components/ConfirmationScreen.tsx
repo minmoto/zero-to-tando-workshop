@@ -5,7 +5,6 @@ import {
   SwapFormData,
   MobileMoneyDetails,
   BankTransferDetails,
-  CardDetails
 } from '../types';
 
 interface ConfirmationScreenProps {
@@ -32,8 +31,6 @@ export function ConfirmationScreen({
         return 'Mobile Money (M-Pesa)';
       case PaymentRail.BANK_TRANSFER:
         return 'Bank Transfer';
-      case PaymentRail.CARD:
-        return 'Card';
       default:
         return '';
     }
@@ -88,34 +85,7 @@ export function ConfirmationScreen({
           </div>
         );
       }
-
-      case PaymentRail.CARD: {
-        const details = formData.destinationDetails as CardDetails;
-        const maskedCard = details.cardNumber
-          ? details.cardNumber.replace(/\d(?=\d{4})/g, '*')
-          : '';
-        return (
-          <div className="space-y-3">
-            <div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">
-                Card Number
-              </div>
-              <div className="text-lg font-medium text-gray-900 dark:text-white">
-                {maskedCard}
-              </div>
-            </div>
-            <div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">
-                Expiry
-              </div>
-              <div className="text-lg font-medium text-gray-900 dark:text-white">
-                {details.expiryMonth}/{details.expiryYear}
-              </div>
-            </div>
-          </div>
-        );
-      }
-
+      
       default:
         return null;
     }

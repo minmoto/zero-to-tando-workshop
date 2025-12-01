@@ -282,7 +282,6 @@ export default function Home() {
           {currentStep === OfframpStep.DISPLAY_INVOICE && createdSwap && (
             <InvoiceDisplay
               swap={createdSwap}
-              onPaymentComplete={handlePaymentComplete}
             />
           )}
 
@@ -296,7 +295,7 @@ export default function Home() {
 
         {/* Footer */}
         <div className="text-center mt-8 text-sm text-gray-500 dark:text-gray-400">
-          <p>Powered by the MINMO API</p>
+          <p>Powered by the Minmo API</p>
         </div>
       </div>
     </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { SwapFilterOption, SwapSortOption, StoredSwap, SwapState } from '../types';
 import { SwapCard } from '../components/SwapCard';
@@ -12,25 +12,21 @@ const SWAPS_PER_PAGE = 10;
 
 export default function HistoryPage() {
   const router = useRouter();
-  const [swaps, setSwaps] = useState<StoredSwap[]>([]);
+  const [beneficiaryId] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      return getBeneficiaryId();
+    }
+    return '';
+  });
+  const [swaps, setSwaps] = useState<StoredSwap[]>(() => {
+    if (typeof window !== 'undefined' && beneficiaryId) {
+      return getSwaps(beneficiaryId);
+    }
+    return [];
+  });
   const [filter, setFilter] = useState<SwapFilterOption>('all');
   const [sort, setSort] = useState<SwapSortOption>('newest');
   const [displayCount, setDisplayCount] = useState(SWAPS_PER_PAGE);
-  const [beneficiaryId, setBeneficiaryId] = useState<string>('');
-
-  useEffect(() => {
-    // Get beneficiary ID and load swaps
-    if (typeof window !== 'undefined') {
-      const id = getBeneficiaryId();
-      setBeneficiaryId(id);
-      loadSwaps(id);
-    }
-  }, []);
-
-  const loadSwaps = (beneficiaryId: string) => {
-    const allSwaps = getSwaps(beneficiaryId);
-    setSwaps(allSwaps);
-  };
 
   const filterSwaps = (swaps: StoredSwap[]): StoredSwap[] => {
     switch (filter) {

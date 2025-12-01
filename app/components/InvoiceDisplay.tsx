@@ -6,12 +6,10 @@ import { SwapResponse } from '../types';
 
 interface InvoiceDisplayProps {
   swap: SwapResponse;
-  onPaymentComplete: () => void;
 }
 
-export function InvoiceDisplay({ swap, onPaymentComplete }: InvoiceDisplayProps) {
+export function InvoiceDisplay({ swap, }: InvoiceDisplayProps) {
   const [copied, setCopied] = useState(false);
-  const [isPolling, setIsPolling] = useState(false);
 
   const invoice = swap.escrowInvoice || '';
 
@@ -22,26 +20,6 @@ export function InvoiceDisplay({ swap, onPaymentComplete }: InvoiceDisplayProps)
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
       console.error('Failed to copy:', error);
-    }
-  };
-
-  const checkPaymentStatus = async () => {
-    setIsPolling(true);
-
-    try {
-      // Mock payment check - replace with actual API call
-      // const response = await fetch(`/api/swap/${swap.id}/escrow-status`);
-      // const data = await response.json();
-
-      // For now, simulate check
-      setTimeout(() => {
-        setIsPolling(false);
-        // If paid, call onPaymentComplete()
-        // For demo, we'll let user manually proceed
-      }, 1000);
-    } catch (error) {
-      console.error('Failed to check payment status:', error);
-      setIsPolling(false);
     }
   };
 
@@ -166,50 +144,6 @@ export function InvoiceDisplay({ swap, onPaymentComplete }: InvoiceDisplayProps)
             </p>
           </div>
         </div>
-      </div>
-
-      {/* Action Buttons */}
-      <div className="space-y-3 pt-4">
-        <button
-          onClick={checkPaymentStatus}
-          disabled={isPolling}
-          className="w-full px-6 py-3 rounded-lg bg-blue-500 text-white font-medium hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-        >
-          {isPolling ? (
-            <>
-              <svg
-                className="animate-spin h-5 w-5 text-white"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                />
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                />
-              </svg>
-              Checking...
-            </>
-          ) : (
-            'Check Payment Status'
-          )}
-        </button>
-
-        <button
-          onClick={onPaymentComplete}
-          className="w-full px-6 py-3 rounded-lg border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-        >
-          I&apos;ve Paid - Continue to Tracking
-        </button>
       </div>
 
       {/* Swap Reference */}

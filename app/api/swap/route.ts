@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const SWAP_API_URL = process.env.SWAP_API_URL || 'http://api.dev.minmo.to/api/v1';
+const SWAP_API_URL = process.env.SWAP_API_URL || '';
 const API_KEY = process.env.NEXT_PUBLIC_API_KEY || '';
 const AGENT_ID = process.env.AGENT_ID || '';
 
@@ -53,10 +53,6 @@ export async function POST(request: NextRequest) {
       Object.assign(requestBody, { beneficiaryId: body.beneficiaryId });
     }
 
-    console.log('Creating swap with request:', JSON.stringify(requestBody, null, 2));
-    console.log('API URL:', apiUrl);
-    console.log('Headers:', headers);
-
     const response = await fetch(apiUrl, {
       method: 'POST',
       headers,
@@ -75,7 +71,6 @@ export async function POST(request: NextRequest) {
     }
 
     const data = await response.json();
-    console.log('Swap created successfully:', data);
     return NextResponse.json(data);
   } catch (error) {
     console.error('Swap creation error:', error);

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const SWAP_API_URL = process.env.SWAP_API_URL || 'http://api.dev.minmo.to/api/v1';
+const SWAP_API_URL = process.env.SWAP_API_URL || '';
 const API_KEY = process.env.NEXT_PUBLIC_API_KEY || '';
 
 export async function GET(

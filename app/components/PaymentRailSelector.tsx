@@ -9,26 +9,20 @@ interface PaymentRailOption {
   icon: string;
 }
 
-const PAYMENT_RAILS: PaymentRailOption[] = [
-  {
-    value: PaymentRail.MOBILE_MONEY,
-    label: 'Mobile Money',
-    description: 'M-Pesa',
-    icon: '📱'
-  },
-  {
-    value: PaymentRail.BANK_TRANSFER,
-    label: 'Bank Transfer',
-    description: 'Direct bank deposit',
-    icon: '🏦'
-  },
-  {
-    value: PaymentRail.CARD,
-    label: 'Card',
-    description: 'Debit/Credit card',
-    icon: '💳'
-  }
-];
+// const PAYMENT_RAILS: PaymentRailOption[] = [
+//   {
+//     value: PaymentRail.MOBILE_MONEY,
+//     label: 'Mobile Money',
+//     description: 'M-Pesa',
+//     icon: '📱'
+//   },
+//   {
+//     value: PaymentRail.BANK_TRANSFER,
+//     label: 'Bank Transfer',
+//     description: 'Direct bank deposit',
+//     icon: '🏦'
+//   },
+// ];
 
 interface PaymentRailSelectorProps {
   selected?: PaymentRail;
@@ -47,7 +41,7 @@ export function PaymentRailSelector({ selected, onSelect }: PaymentRailSelectorP
         </p>
       </div>
 
-      <div className="grid gap-3">
+      {/* <div className="grid gap-3">
         {PAYMENT_RAILS.map((rail) => (
           <button
             key={rail.value}
@@ -82,7 +76,7 @@ export function PaymentRailSelector({ selected, onSelect }: PaymentRailSelectorP
             )}
           </button>
         ))}
-      </div>
+      </div> */}
     </div>
   );
 }

@@ -2,11 +2,9 @@
 export enum PaymentRail {
   MOBILE_MONEY = 'mpesa_phone',
   BANK_TRANSFER = 'bank_transfer',
-  CARD = 'card'
 }
 
 export enum SwapType {
-  ONRAMP = 'onramp',
   OFFRAMP = 'offramp'
 }
 
@@ -42,16 +40,9 @@ export interface BankTransferDetails {
   accountName?: string;
 }
 
-export interface CardDetails {
-  cardNumber: string;
-  expiryMonth: string;
-  expiryYear: string;
-}
-
 export type DestinationDetails =
   | MobileMoneyDetails
   | BankTransferDetails
-  | CardDetails;
 
 // Swap creation data
 export interface SwapFormData {

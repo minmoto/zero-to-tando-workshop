@@ -1,8 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Currency } from '../types';
-import { fxRatesService } from '../services/fxRatesService';
+import { useState } from 'react';
 
 interface AmountInputProps {
   fiatAmount: string;
@@ -26,34 +24,6 @@ export function AmountInput({
   onContinue
 }: AmountInputProps) {
   const [activeInput, setActiveInput] = useState<'fiat' | 'sats'>('fiat');
-  const [isLoadingRate, setIsLoadingRate] = useState(false);
-  const [rateError, setRateError] = useState<string | null>(null);
-
-  // Fetch exchange rate on mount
-  useEffect(() => {
-    if (exchangeRate === 0) {
-      fetchExchangeRate();
-    }
-  }, []);
-
-  const fetchExchangeRate = async () => {
-    setIsLoadingRate(true);
-    setRateError(null);
-
-    try {
-      const rate = await fxRatesService.getBtcToFiatRate('KES');
-
-      if (fiatAmount) {
-        const sats = convertFiatToSats(fiatAmount, rate);
-        onFiatChange(fiatAmount, sats);
-      }
-      setIsLoadingRate(false);
-    } catch (error) {
-      console.error('Failed to fetch exchange rate:', error);
-      setRateError('Failed to fetch exchange rate. Please try again.');
-      setIsLoadingRate(false);
-    }
-  };
 
   const convertFiatToSats = (fiat: string, rate: number): string => {
     if (!fiat || parseFloat(fiat) === 0) return '0';
@@ -113,7 +83,7 @@ export function AmountInput({
   const canContinue = () => {
     const fiat = parseFloat(fiatAmount || '0');
     const sats = parseInt(satoshiAmount || '0', 10);
-    return fiat > 0 && sats > 0 && exchangeRate > 0 && !isLoadingRate;
+    return fiat > 0 && sats > 0 && exchangeRate > 0;
   };
 
   return (
@@ -127,20 +97,12 @@ export function AmountInput({
         </p>
       </div>
 
-      {rateError && (
-        <div className="p-4 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg">
-          <p className="text-sm text-red-600 dark:text-red-400">{rateError}</p>
-          <button
-            onClick={fetchExchangeRate}
-            className="mt-2 text-sm text-red-700 dark:text-red-300 underline"
-          >
-            Retry
-          </button>
-        </div>
-      )}
+      {/* 
+      Utilize Minmo's currency conversion API to dynamically 
+      find value of amount in sats and local currrency 
+      */}
 
-      <div className="space-y-4">
-        {/* Fiat Amount Input */}
+      {/* <div className="space-y-4">
         <div>
           <label
             htmlFor="fiatAmount"
@@ -171,7 +133,6 @@ export function AmountInput({
           </div>
         </div>
 
-        {/* Conversion Arrow */}
         <div className="flex justify-center">
           <div className="text-gray-400 dark:text-gray-500">
             <svg
@@ -190,7 +151,6 @@ export function AmountInput({
           </div>
         </div>
 
-        {/* Satoshi Amount Input */}
         <div>
           <label
             htmlFor="satoshiAmount"
@@ -222,21 +182,15 @@ export function AmountInput({
         </div>
       </div>
 
-      {/* Exchange Rate Display */}
       <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
         <div className="flex justify-between items-center text-sm">
           <span className="text-gray-600 dark:text-gray-400">Exchange Rate</span>
-          {isLoadingRate ? (
-            <span className="text-gray-500 dark:text-gray-400">Loading...</span>
-          ) : (
-            <span className="text-gray-900 dark:text-white font-medium">
-              1 BTC = {formatNumber(exchangeRate.toString())} KES
-            </span>
-          )}
+          <span className="text-gray-900 dark:text-white font-medium">
+            1 BTC = {formatNumber(exchangeRate.toString())} KES
+          </span>
         </div>
       </div>
 
-      {/* Summary */}
       {parseFloat(fiatAmount || '0') > 0 && (
         <div className="p-4 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
           <p className="text-sm text-blue-900 dark:text-blue-100">
@@ -244,7 +198,7 @@ export function AmountInput({
             <span className="font-semibold">KES {formatNumber(fiatAmount)}</span>
           </p>
         </div>
-      )}
+      )} */}
 
       <div className="flex gap-3 pt-4">
         <button

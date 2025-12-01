@@ -38,8 +38,6 @@ export function SwapConfirmation({ swap, onContinueToPayment }: SwapConfirmation
         return 'M-Pesa';
       case PaymentRail.BANK_TRANSFER:
         return 'Bank Transfer';
-      case PaymentRail.CARD:
-        return 'Card';
       default:
         return channel.replace(/_/g, ' ');
     }
@@ -70,7 +68,6 @@ export function SwapConfirmation({ swap, onContinueToPayment }: SwapConfirmation
               />
             </svg>
           </div>
-          <div className="absolute inset-0 rounded-full bg-green-500/20 animate-ping"></div>
         </div>
       </div>
 

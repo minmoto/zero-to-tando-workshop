@@ -5,7 +5,6 @@ import {
   PaymentRail,
   MobileMoneyDetails,
   BankTransferDetails,
-  CardDetails,
   DestinationDetails
 } from '../types';
 
@@ -34,11 +33,6 @@ export function DestinationInput({
     return account.length >= 6 && /^\d+$/.test(account);
   };
 
-  const validateCardNumber = (card: string): boolean => {
-    const cleaned = card.replace(/\s/g, '');
-    return cleaned.length === 16 && /^\d+$/.test(cleaned);
-  };
-
   const handleMobileMoneyChange = (phoneNumber: string) => {
     const newErrors = { ...errors };
 
@@ -52,17 +46,17 @@ export function DestinationInput({
     onChange({ phoneNumber } as MobileMoneyDetails);
   };
 
-  const handleBankTransferChange = (field: keyof BankTransferDetails, value: string) => {
-    const current = (value as unknown as BankTransferDetails) || {
+  const handleBankTransferChange = (field: keyof BankTransferDetails, fieldValue: string) => {
+    const current = (value as BankTransferDetails) || {
       bankName: '',
       accountNumber: '',
       accountName: ''
     };
 
-    const updated = { ...current, [field]: value };
+    const updated = { ...current, [field]: fieldValue };
     const newErrors = { ...errors };
 
-    if (field === 'accountNumber' && value && !validateAccountNumber(value)) {
+    if (field === 'accountNumber' && fieldValue && !validateAccountNumber(fieldValue)) {
       newErrors.accountNumber = 'Invalid account number';
     } else if (field === 'accountNumber') {
       delete newErrors.accountNumber;
@@ -70,26 +64,6 @@ export function DestinationInput({
 
     setErrors(newErrors);
     onChange(updated as BankTransferDetails);
-  };
-
-  const handleCardChange = (field: keyof CardDetails, value: string) => {
-    const current = (value as unknown as CardDetails) || {
-      cardNumber: '',
-      expiryMonth: '',
-      expiryYear: ''
-    };
-
-    const updated = { ...current, [field]: value };
-    const newErrors = { ...errors };
-
-    if (field === 'cardNumber' && value && !validateCardNumber(value)) {
-      newErrors.cardNumber = 'Invalid card number';
-    } else if (field === 'cardNumber') {
-      delete newErrors.cardNumber;
-    }
-
-    setErrors(newErrors);
-    onChange(updated as CardDetails);
   };
 
   const renderMobileMoneyInput = () => {
@@ -210,99 +184,16 @@ export function DestinationInput({
     );
   };
 
-  const renderCardInput = () => {
-    const details = value as CardDetails | undefined;
-
-    return (
-      <div className="space-y-4">
-        <div>
-          <label
-            htmlFor="cardNumber"
-            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-          >
-            Card Number
-          </label>
-          <input
-            id="cardNumber"
-            type="text"
-            value={details?.cardNumber || ''}
-            onChange={(e) => {
-              const formatted = e.target.value.replace(/\s/g, '').replace(/(\d{4})/g, '$1 ').trim();
-              handleCardChange('cardNumber', formatted);
-            }}
-            placeholder="1234 5678 9012 3456"
-            maxLength={19}
-            className={`
-              w-full px-4 py-3 rounded-lg border
-              ${errors.cardNumber ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'}
-              bg-white dark:bg-gray-800
-              text-gray-900 dark:text-white
-              placeholder-gray-400 dark:placeholder-gray-500
-              focus:outline-none focus:ring-2 focus:ring-blue-500
-            `}
-            aria-invalid={!!errors.cardNumber}
-            aria-describedby={errors.cardNumber ? 'cardNumber-error' : undefined}
-          />
-          {errors.cardNumber && (
-            <p id="cardNumber-error" className="mt-1 text-sm text-red-500">
-              {errors.cardNumber}
-            </p>
-          )}
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label
-              htmlFor="expiryMonth"
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-            >
-              Expiry Month
-            </label>
-            <input
-              id="expiryMonth"
-              type="text"
-              value={details?.expiryMonth || ''}
-              onChange={(e) => handleCardChange('expiryMonth', e.target.value)}
-              placeholder="MM"
-              maxLength={2}
-              className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          <div>
-            <label
-              htmlFor="expiryYear"
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-            >
-              Expiry Year
-            </label>
-            <input
-              id="expiryYear"
-              type="text"
-              value={details?.expiryYear || ''}
-              onChange={(e) => handleCardChange('expiryYear', e.target.value)}
-              placeholder="YY"
-              maxLength={2}
-              className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  const renderInput = () => {
-    switch (paymentRail) {
-      case PaymentRail.MOBILE_MONEY:
-        return renderMobileMoneyInput();
-      case PaymentRail.BANK_TRANSFER:
-        return renderBankTransferInput();
-      case PaymentRail.CARD:
-        return renderCardInput();
-      default:
-        return null;
-    }
-  };
+  // const renderInput = () => {
+  //   switch (paymentRail) {
+  //     case PaymentRail.MOBILE_MONEY:
+  //       return renderMobileMoneyInput();
+  //     case PaymentRail.BANK_TRANSFER:
+  //       return renderBankTransferInput();
+  //     default:
+  //       return null;
+  //   }
+  // };
 
   return (
     <div className="w-full max-w-md mx-auto space-y-6">
@@ -315,7 +206,9 @@ export function DestinationInput({
         </p>
       </div>
 
-      {renderInput()}
+      {/* Conditional rendering of destination by fiat payment rail */}
+
+      {/* {renderInput()} */}
 
       <div className="flex gap-3 pt-4">
         <button

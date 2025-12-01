@@ -12,26 +12,18 @@ export default function SwapDetailPage() {
   const params = useParams();
   const swapId = params.id as string;
 
-  const [swap, setSwap] = useState<StoredSwap | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [swap, setSwap] = useState<StoredSwap | null>(() => {
+    return swapId ? getSwapById(swapId) : null;
+  });
+  const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    if (swapId) {
-      const foundSwap = getSwapById(swapId);
-      setSwap(foundSwap);
-      setLoading(false);
-
-      if (!foundSwap) {
-        toast.error('Swap not found');
-      }
+    if (swapId && !swap) {
+      toast.error('Swap not found');
     }
-  }, [swapId]);
+  }, [swapId, swap]);
 
-  const formatNumber = (num: string): string => {
-    if (!num) return '0';
-    return num.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-  };
 
   const getPaymentMethodLabel = (channel: string): string => {
     switch (channel) {
@@ -39,8 +31,6 @@ export default function SwapDetailPage() {
         return 'M-Pesa';
       case PaymentRail.BANK_TRANSFER:
         return 'Bank Transfer';
-      case PaymentRail.CARD:
-        return 'Card';
       default:
         return channel.replace(/_/g, ' ');
     }
