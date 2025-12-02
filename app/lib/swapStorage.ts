@@ -1,21 +1,21 @@
 /**
  * Swap Storage Manager
- * Handles persistence of swap data in localStorage
+ * Handles persistence of minimal swap data in localStorage
  *
  * Features:
- * - Store swaps with beneficiary association
- * - Retrieve swaps by beneficiary ID
+ * - Store only swapId and beneficiaryId (minimal storage)
+ * - Retrieve swap references by beneficiary ID
  * - Automatic cache expiration (7 days)
  * - Type-safe storage operations
  */
 
-import { SwapResponse, StoredSwap } from '../types';
+import { SwapResponse, StoredSwapReference } from '../types';
 
 const SWAPS_STORAGE_KEY = 'minmo_swaps';
 const CACHE_DURATION_DAYS = 7;
 
 /**
- * Save a swap to localStorage
+ * Save a swap reference to localStorage (only stores swapId and beneficiaryId)
  */
 export function saveSwap(swap: SwapResponse, beneficiaryId: string): void {
   if (typeof window === 'undefined') {
@@ -24,34 +24,34 @@ export function saveSwap(swap: SwapResponse, beneficiaryId: string): void {
   }
 
   try {
-    const storedSwap: StoredSwap = {
-      ...swap,
+    const swapReference: StoredSwapReference = {
+      swapId: swap.id,
       beneficiaryId,
       savedAt: new Date().toISOString()
     };
 
-    const existingSwaps = getSwaps();
+    const existingRefs = getSwapReferences();
 
     // Check if swap already exists (by ID) and update it
-    const swapIndex = existingSwaps.findIndex(s => s.id === swap.id);
+    const swapIndex = existingRefs.findIndex(s => s.swapId === swap.id);
 
     if (swapIndex >= 0) {
-      existingSwaps[swapIndex] = storedSwap;
+      existingRefs[swapIndex] = swapReference;
     } else {
-      existingSwaps.push(storedSwap);
+      existingRefs.push(swapReference);
     }
 
-    localStorage.setItem(SWAPS_STORAGE_KEY, JSON.stringify(existingSwaps));
+    localStorage.setItem(SWAPS_STORAGE_KEY, JSON.stringify(existingRefs));
   } catch (error) {
-    console.error('Failed to save swap:', error);
+    console.error('Failed to save swap reference:', error);
   }
 }
 
 /**
- * Get all swaps, optionally filtered by beneficiary ID
- * Automatically removes expired swaps (older than 7 days)
+ * Get all swap references from localStorage
+ * Automatically removes expired references (older than 7 days)
  */
-export function getSwaps(beneficiaryId?: string): StoredSwap[] {
+export function getSwapReferences(beneficiaryId?: string): StoredSwapReference[] {
   if (typeof window === 'undefined') {
     return [];
   }
@@ -63,52 +63,52 @@ export function getSwaps(beneficiaryId?: string): StoredSwap[] {
       return [];
     }
 
-    const allSwaps: StoredSwap[] = JSON.parse(storedData);
+    const allRefs: StoredSwapReference[] = JSON.parse(storedData);
     const now = new Date();
     const expirationDate = new Date(now.getTime() - CACHE_DURATION_DAYS * 24 * 60 * 60 * 1000);
 
-    // Filter out expired swaps
-    const validSwaps = allSwaps.filter(swap => {
-      const savedDate = new Date(swap.savedAt);
+    // Filter out expired references
+    const validRefs = allRefs.filter(ref => {
+      const savedDate = new Date(ref.savedAt);
       return savedDate > expirationDate;
     });
 
-    // Update storage if we removed any expired swaps
-    if (validSwaps.length !== allSwaps.length) {
-      localStorage.setItem(SWAPS_STORAGE_KEY, JSON.stringify(validSwaps));
+    // Update storage if we removed any expired references
+    if (validRefs.length !== allRefs.length) {
+      localStorage.setItem(SWAPS_STORAGE_KEY, JSON.stringify(validRefs));
     }
 
     // Filter by beneficiary ID if provided
     if (beneficiaryId) {
-      return validSwaps.filter(swap => swap.beneficiaryId === beneficiaryId);
+      return validRefs.filter(ref => ref.beneficiaryId === beneficiaryId);
     }
 
-    return validSwaps;
+    return validRefs;
   } catch (error) {
-    console.error('Failed to get swaps:', error);
+    console.error('Failed to get swap references:', error);
     return [];
   }
 }
 
 /**
- * Get a single swap by its ID
+ * Get a single swap reference by its ID
  */
-export function getSwapById(id: string): StoredSwap | null {
+export function getSwapReferenceById(id: string): StoredSwapReference | null {
   if (typeof window === 'undefined') {
     return null;
   }
 
   try {
-    const swaps = getSwaps();
-    return swaps.find(swap => swap.id === id) || null;
+    const refs = getSwapReferences();
+    return refs.find(ref => ref.swapId === id) || null;
   } catch (error) {
-    console.error('Failed to get swap by ID:', error);
+    console.error('Failed to get swap reference by ID:', error);
     return null;
   }
 }
 
 /**
- * Clear all stored swaps
+ * Clear all stored swap references
  */
 export function clearSwaps(): void {
   if (typeof window === 'undefined') {
@@ -119,19 +119,19 @@ export function clearSwaps(): void {
   try {
     localStorage.removeItem(SWAPS_STORAGE_KEY);
   } catch (error) {
-    console.error('Failed to clear swaps:', error);
+    console.error('Failed to clear swap references:', error);
   }
 }
 
 /**
- * Get swaps count for a beneficiary
+ * Get swap references count for a beneficiary
  */
 export function getSwapsCount(beneficiaryId?: string): number {
-  return getSwaps(beneficiaryId).length;
+  return getSwapReferences(beneficiaryId).length;
 }
 
 /**
- * Delete a specific swap by ID
+ * Delete a specific swap reference by ID
  */
 export function deleteSwap(id: string): boolean {
   if (typeof window === 'undefined') {
@@ -140,49 +140,17 @@ export function deleteSwap(id: string): boolean {
   }
 
   try {
-    const swaps = getSwaps();
-    const filteredSwaps = swaps.filter(swap => swap.id !== id);
+    const refs = getSwapReferences();
+    const filteredRefs = refs.filter(ref => ref.swapId !== id);
 
-    if (filteredSwaps.length === swaps.length) {
-      return false; // Swap not found
+    if (filteredRefs.length === refs.length) {
+      return false; // Swap reference not found
     }
 
-    localStorage.setItem(SWAPS_STORAGE_KEY, JSON.stringify(filteredSwaps));
+    localStorage.setItem(SWAPS_STORAGE_KEY, JSON.stringify(filteredRefs));
     return true;
   } catch (error) {
-    console.error('Failed to delete swap:', error);
-    return false;
-  }
-}
-
-/**
- * Update a swap's state
- */
-export function updateSwapState(id: string, updatedSwap: SwapResponse): boolean {
-  if (typeof window === 'undefined') {
-    console.warn('updateSwapState can only be called in browser environment');
-    return false;
-  }
-
-  try {
-    const swaps = getSwaps();
-    const swapIndex = swaps.findIndex(swap => swap.id === id);
-
-    if (swapIndex === -1) {
-      return false;
-    }
-
-    // Preserve beneficiaryId and savedAt
-    swaps[swapIndex] = {
-      ...updatedSwap,
-      beneficiaryId: swaps[swapIndex].beneficiaryId,
-      savedAt: swaps[swapIndex].savedAt
-    };
-
-    localStorage.setItem(SWAPS_STORAGE_KEY, JSON.stringify(swaps));
-    return true;
-  } catch (error) {
-    console.error('Failed to update swap state:', error);
+    console.error('Failed to delete swap reference:', error);
     return false;
   }
 }

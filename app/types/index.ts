@@ -99,7 +99,14 @@ export enum OfframpStep {
 export type SwapFilterOption = 'all' | 'pending' | 'completed';
 export type SwapSortOption = 'newest' | 'oldest' | 'amount_high' | 'amount_low';
 
-// Stored swap interface for localStorage
+// Stored swap interface for localStorage (minimal storage)
+export interface StoredSwapReference {
+  swapId: string;
+  beneficiaryId: string;
+  savedAt: string;
+}
+
+// Extended swap with beneficiary for backward compatibility
 export interface StoredSwap extends SwapResponse {
   beneficiaryId: string;
   savedAt: string;
@@ -112,10 +119,11 @@ export interface SwapHistoryState {
   sort: SwapSortOption;
 }
 
-// Swap storage interface
+// Swap storage interface (minimal storage approach)
 export interface SwapStorage {
   saveSwap: (swap: SwapResponse, beneficiaryId: string) => void;
-  getSwaps: (beneficiaryId?: string) => StoredSwap[];
-  getSwapById: (id: string) => StoredSwap | null;
+  getSwapReferences: (beneficiaryId?: string) => StoredSwapReference[];
+  getSwapReferenceById: (id: string) => StoredSwapReference | null;
   clearSwaps: () => void;
+  deleteSwap: (id: string) => boolean;
 }

@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { StoredSwap, SwapState, PaymentRail } from '../../types';
-import { getSwapById } from '../../lib/swapStorage';
+import { getSwapReferenceById } from '../../lib/swapStorage';
+import { fetchStoredSwap } from '../../services/swapService';
 import { SwapTracker } from '../../components/SwapTracker';
 
 export default function SwapDetailPage() {
@@ -12,17 +13,46 @@ export default function SwapDetailPage() {
   const params = useParams();
   const swapId = params.id as string;
 
-  const [swap, setSwap] = useState<StoredSwap | null>(() => {
-    return swapId ? getSwapById(swapId) : null;
-  });
-  const [loading, setLoading] = useState(false);
+  const [swap, setSwap] = useState<StoredSwap | null>(null);
+  const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
+  const [invoiceCopied, setInvoiceCopied] = useState(false);
 
   useEffect(() => {
-    if (swapId && !swap) {
-      toast.error('Swap not found');
+    async function loadSwap() {
+      if (!swapId) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const reference = getSwapReferenceById(swapId);
+
+        if (!reference) {
+          toast.error('Swap not found');
+          setLoading(false);
+          return;
+        }
+
+        const fetchedSwap = await fetchStoredSwap(reference);
+
+        if (!fetchedSwap) {
+          toast.error('Failed to load swap details');
+          setLoading(false);
+          return;
+        }
+
+        setSwap(fetchedSwap);
+      } catch (error) {
+        console.error('Error loading swap:', error);
+        toast.error('Failed to load swap details');
+      } finally {
+        setLoading(false);
+      }
     }
-  }, [swapId, swap]);
+
+    loadSwap();
+  }, [swapId]);
 
 
   const getPaymentMethodLabel = (channel: string): string => {
@@ -47,6 +77,20 @@ export default function SwapDetailPage() {
     } catch (error) {
       console.error('Failed to copy:', error);
       toast.error('Failed to copy reference');
+    }
+  };
+
+  const copyInvoice = async () => {
+    if (!swap || !swap.escrowInvoice) return;
+
+    try {
+      await navigator.clipboard.writeText(swap.escrowInvoice);
+      setInvoiceCopied(true);
+      toast.success('Invoice copied to clipboard');
+      setTimeout(() => setInvoiceCopied(false), 2000);
+    } catch (error) {
+      console.error('Failed to copy invoice:', error);
+      toast.error('Failed to copy invoice');
     }
   };
 
@@ -216,6 +260,7 @@ export default function SwapDetailPage() {
               </button>
             </div>
           </div>
+
         </div>
 
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 space-y-8">
@@ -288,6 +333,40 @@ export default function SwapDetailPage() {
                   {swap.type}
                 </span>
               </div>
+              {swap.escrowInvoice && (
+                <div className="flex justify-between items-center gap-2">
+                  <span className="text-gray-600 dark:text-gray-400">Lightning Invoice</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-gray-900 dark:text-white font-mono text-xs truncate max-w-[200px]">
+                      {swap.escrowInvoice.substring(0, 20)}...{swap.escrowInvoice.substring(swap.escrowInvoice.length - 20)}
+                    </span>
+                    <button
+                      onClick={copyInvoice}
+                      className="p-1 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
+                      aria-label="Copy lightning invoice"
+                    >
+                      {invoiceCopied ? (
+                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                          <path
+                            fillRule="evenodd"
+                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      ) : (
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                          />
+                        </svg>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              )}
               <div className="flex justify-between">
                 <span className="text-gray-600 dark:text-gray-400">Saved</span>
                 <span className="text-gray-900 dark:text-white">

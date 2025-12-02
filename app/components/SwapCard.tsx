@@ -47,9 +47,14 @@ export function SwapCard({ swap }: SwapCardProps) {
           bgColor: 'bg-orange-100 dark:bg-orange-950/30 border-orange-200 dark:border-orange-800'
         };
       case SwapState.CREATED:
+        return {
+          label: 'Pending Agent',
+          color: 'text-yellow-700 dark:text-yellow-400',
+          bgColor: 'bg-yellow-100 dark:bg-yellow-950/30 border-yellow-200 dark:border-yellow-800'
+        };
       case SwapState.ESCROW_PENDING:
         return {
-          label: 'Awaiting Payment',
+          label: 'Escrow Payment Pending',
           color: 'text-yellow-700 dark:text-yellow-400',
           bgColor: 'bg-yellow-100 dark:bg-yellow-950/30 border-yellow-200 dark:border-yellow-800'
         };
