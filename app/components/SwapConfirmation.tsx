@@ -7,10 +7,9 @@ import { SwapResponse, PaymentRail } from '../types';
 
 interface SwapConfirmationProps {
   swap: SwapResponse;
-  onContinueToPayment: () => void;
 }
 
-export function SwapConfirmation({ swap, onContinueToPayment }: SwapConfirmationProps) {
+export function SwapConfirmation({ swap }: SwapConfirmationProps) {
   const [copied, setCopied] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
   const router = useRouter();
@@ -248,12 +247,6 @@ export function SwapConfirmation({ swap, onContinueToPayment }: SwapConfirmation
 
       {/* Action Buttons */}
       <div className="space-y-3 pt-4">
-        <button
-          onClick={onContinueToPayment}
-          className="w-full px-6 py-3 rounded-lg bg-blue-500 text-white font-medium hover:bg-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
-        >
-          Continue to Payment
-        </button>
         <button
           onClick={handleViewHistory}
           className="w-full px-6 py-3 rounded-lg border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"

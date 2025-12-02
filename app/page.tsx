@@ -16,7 +16,6 @@ import { DestinationInput } from './components/DestinationInput';
 import { AmountInput } from './components/AmountInput';
 import { ConfirmationScreen } from './components/ConfirmationScreen';
 import { SwapConfirmation } from './components/SwapConfirmation';
-import { InvoiceDisplay } from './components/InvoiceDisplay';
 import { SwapTracker } from './components/SwapTracker';
 import { fxRatesService } from './services/fxRatesService';
 import { getBeneficiaryId } from './lib/beneficiary';
@@ -274,13 +273,6 @@ export default function Home() {
 
           {currentStep === OfframpStep.SWAP_CONFIRMATION && createdSwap && (
             <SwapConfirmation
-              swap={createdSwap}
-              onContinueToPayment={handleContinueToPayment}
-            />
-          )}
-
-          {currentStep === OfframpStep.DISPLAY_INVOICE && createdSwap && (
-            <InvoiceDisplay
               swap={createdSwap}
             />
           )}
